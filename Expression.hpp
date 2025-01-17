@@ -1,74 +1,54 @@
-#include <vector>
+#include <memory>
+#include <variant>
 
+#include "Reactive/Reactive.hpp"
 #include "types.hpp"
 
-namespace React {
-
-struct Expression {};
-
-struct Constant : Expression {
-  Answer value;
-
-  explicit Constant(Answer value) : Expression(), value(value) {}
+template <typename T> struct Constant {
+  T value;
 };
 
-struct FormElementReference : Expression {
-  BuilderId id;
-
-  explicit FormElementReference(BuilderId id) : Expression(), id(id) {}
+template <typename T> struct FormElementReference {
+  std::shared_ptr<Signal<T>> question_signal;
 };
 
-struct IfThenElse : Expression {
-  Expression predicate;
-  Expression consequence;
-  Expression alternative;
+template <typename T>
+using FormElementOrConstantReference =
+    std::variant<Constant<T>, FormElementReference<T>>;
 
-  explicit IfThenElse(Expression p, Expression c, Expression a)
-      : Expression(), predicate(p), consequence(c), alternative(a) {}
+template <typename T> struct VarAssignment {
+  FormElementReference<T> target_question;
+  FormElementOrConstantReference<T> value;
 };
 
-enum BinaryOperationType {
-  AND,
-  OR,
+enum ConditionOperator {
   EQUALS,
-  NOT_EQUALS,
 };
 
-struct BinaryOperation : Expression {
-  BinaryOperationType op;
-  Expression lhs;
-  Expression rhs;
-
-  explicit BinaryOperation(BinaryOperationType op, Expression lhs,
-                           Expression rhs)
-      : Expression(), op(op), lhs(lhs), rhs(rhs) {}
+template <typename T> struct Condition {
+  BuilderId condition_id;
+  ConditionOperator op;
+  FormElementReference<T> lhs;
+  FormElementOrConstantReference<T> rhs;
 };
 
-enum UnaryOperationType {
-  IS_ANSWERED,
-  IS_NOT_ANSWERED,
-};
+enum RuleLinkType { JOIN, CONDITION };
 
-struct UnaryOperation : Expression {
-  UnaryOperationType op;
-  Expression operand;
-
-  explicit UnaryOperation(UnaryOperationType op, Expression operand)
-      : Expression(), op(op), operand(operand) {}
-};
-
-struct Block : Expression {
-  std::vector<Expression> expressions;
-
-  explicit Block(std::vector<Expression> es) : Expression(), expressions(es) {}
-};
-
-struct VarAssignment : Expression {
+struct RuleLink {
+  RuleLinkType type;
   BuilderId target_id;
-  Expression value;
+};
 
-  explicit VarAssignment(BuilderId target_id, Expression value)
-      : Expression(), target_id(target_id), value(value) {}
+enum JoinOp { AND, OR };
+
+struct RuleJoin {
+  BuilderId join_id;
+  JoinOp op;
+  RuleLink lhs, rhs;
+};
+
+struct IfThenElse {
+  RuleJoin predicate;
 };
 
 // Constant
@@ -79,4 +59,4 @@ struct VarAssignment : Expression {
 // unary expr := <op> <expr>
 // assignment
 // function calling
-} // namespace React
+//

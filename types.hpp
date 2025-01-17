@@ -1,7 +1,3 @@
-
-#include <string>
-#include <variant>
+#pragma once
 
 using BuilderId = unsigned int;
-
-using Answer = std::variant<std::string, float, int, bool>;
