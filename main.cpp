@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <atomic>
 #include <ios>
 #include <iostream>
 #include <memory>
@@ -158,6 +159,7 @@ void eval_if_statement(IfThenElse const &if_statement,
 }
 
 int main() {
+  std::atomic_uint id_generator{};
   std::cout << std::boolalpha;
 
   Runtime runtime{};
@@ -167,28 +169,29 @@ int main() {
   auto s_3 = std::make_shared<Signal<bool>>(runtime.create_signal(false));
   auto s_4 = std::make_shared<Signal<int>>(runtime.create_signal(42));
 
-  auto question_1 =
-      Question<float>(1, "Q1", "Question 1", true, false, false, s_1);
+  auto question_1 = Question<float>(id_generator++, "Q1", "Question 1", true,
+                                    false, false, s_1);
 
-  auto question_2 =
-      Question<float>(2, "Q2", "Question 2", true, false, false, s_2);
+  auto question_2 = Question<float>(id_generator++, "Q2", "Question 2", true,
+                                    false, false, s_2);
 
-  auto question_3 =
-      Question<bool>(3, "Q3", "Question 3", true, false, false, s_3);
+  auto question_3 = Question<bool>(id_generator++, "Q3", "Question 3", true,
+                                   false, false, s_3);
 
-  auto question_4 =
-      Question<int>(4, "Q4", "Question 4", true, false, false, s_4);
+  auto question_4 = Question<int>(id_generator++, "Q4", "Question 4", true,
+                                  false, false, s_4);
 
-  auto q1_equals_q2 = Condition<float>{1, ConditionOperator::EQUALS,
-                                       FormElementReference{question_1.value},
-                                       FormElementReference{question_2.value}};
+  auto q1_equals_q2 =
+      Condition<float>{id_generator++, ConditionOperator::EQUALS,
+                       FormElementReference{question_1.value},
+                       FormElementReference{question_2.value}};
 
-  auto q3_equals_true = Condition<bool>{2, ConditionOperator::EQUALS,
-                                        FormElementReference{question_3.value},
-                                        Constant<bool>{true}};
+  auto q3_equals_true = Condition<bool>{
+      id_generator++, ConditionOperator::EQUALS,
+      FormElementReference{question_3.value}, Constant<bool>{true}};
 
   auto q4_equals_69 =
-      Condition<int>{3, ConditionOperator::EQUALS,
+      Condition<int>{id_generator++, ConditionOperator::EQUALS,
                      FormElementReference{question_4.value}, Constant<int>{69}};
 
   ConditionsVec conditions{q1_equals_q2, q3_equals_true, q4_equals_69};
@@ -199,14 +202,15 @@ int main() {
 
   RuleLink join_1{RuleLinkType::CONDITION, q1_equals_q2.condition_id};
   RuleLink join_2{RuleLinkType::CONDITION, q3_equals_true.condition_id};
-  RuleJoin q1_equals_q2_AND_q3_equals_true{1, JoinOp::AND, join_1, join_2};
+  RuleJoin q1_equals_q2_AND_q3_equals_true{id_generator++, JoinOp::AND, join_1,
+                                           join_2};
   join_exprs.emplace_back(join_1);
   join_exprs.emplace_back(join_2);
   joins.emplace_back(q1_equals_q2_AND_q3_equals_true);
 
   RuleLink join_3{RuleLinkType::JOIN, q1_equals_q2_AND_q3_equals_true.join_id};
   RuleLink join_4{RuleLinkType::CONDITION, q4_equals_69.condition_id};
-  RuleJoin other_or_q3_equals_69{2, JoinOp::OR, join_3, join_4};
+  RuleJoin other_or_q3_equals_69{id_generator++, JoinOp::OR, join_3, join_4};
   join_exprs.emplace_back(join_3);
   join_exprs.emplace_back(join_4);
   joins.emplace_back(other_or_q3_equals_69);

@@ -1,3 +1,4 @@
+#include <atomic>
 #include <memory>
 #include <variant>
 
@@ -26,7 +27,7 @@ enum ConditionOperator {
 };
 
 template <typename T> struct Condition {
-  BuilderId condition_id;
+  const BuilderId condition_id;
   ConditionOperator op;
   FormElementReference<T> lhs;
   FormElementOrConstantReference<T> rhs;
